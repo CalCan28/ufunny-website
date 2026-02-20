@@ -810,16 +810,36 @@
     <p class="footer-copy">© 2026 U Funny. All rights reserved.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    function handleForm(formId, successId) {
-      document.getElementById(formId).addEventListener('submit', function(e) {
+    const { createClient } = supabase;
+    const db = createClient(
+      'https://dyimelulvhkpxijxzrfg.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5aW1lbHVsdmhrcHhpanh6cmZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDc5NDQsImV4cCI6MjA4NTg4Mzk0NH0.4mXcg5qbS-phEQQ5bC62i_UJJBYG6mZATVPoMzGUSZM'
+    );
+
+    async function handleForm(formId, successId) {
+      document.getElementById(formId).addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = this.querySelector('input[type="email"]').value;
-        console.log('Waitlist signup:', email);
+        const button = this.querySelector('button');
+        button.textContent = 'Saving...';
+        button.disabled = true;
+
+        const { error } = await db.from('waitlist').insert([{ email }]);
+
+        if (error && error.code !== '23505') {
+          // 23505 = duplicate email, still show success
+          button.textContent = 'Try Again';
+          button.disabled = false;
+          return;
+        }
+
         this.style.display = 'none';
         document.getElementById(successId).style.display = 'block';
       });
     }
+
     handleForm('hero-form', 'hero-success');
     handleForm('cta-form', 'cta-success');
   </script>
